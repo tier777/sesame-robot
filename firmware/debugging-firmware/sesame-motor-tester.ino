@@ -116,12 +116,19 @@ void moveMotor(int id, int angle) {
 
   if (servoPins[id] < 0) return;  // not wired on this board
 
+  bool wasAttached = servos[id].attached();
   // If servo isn't attached yet (powered off), attach it now
   if (!servos[id].attached()) {
     servos[id].setPeriodHertz(50);
     servos[id].attach(servoPins[id], MIN_PULSE, MAX_PULSE);
   }
 
+#if CONFIG_IDF_TARGET_ESP32C3
+  // USB-powered bench test: sweep in small steps so the servo never pulls a big current spike
+  int from = servos[id].read();
+  int step = angle > from ? 2 : -2;
+  if (wasAttached) for (int a = from; abs(angle - a) > 2; a += step) { servos[id].write(a); delay(15); }
+#endif
   servos[id].write(angle);
   
   Serial.print("OK: Motor ");
