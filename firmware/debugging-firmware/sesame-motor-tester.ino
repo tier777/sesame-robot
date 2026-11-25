@@ -9,13 +9,13 @@ Servo servos[8];
 
 // Motor Pin Mapping
 // Index: 0  1  2  3  4   5   6   7
-const int servoPins[8] = {1, 2, 4, 6, 8, 10, 13, 14};
+// S2 Mini pins: const int servoPins[8] = {1, 2, 4, 6, 8, 10, 13, 14};
 // Distro board V3 pins: (uncomment if needed)
 // const int servoPins[8] = {4, 5, 6, 7, 10, 11, 12, 13};
 // Distro board V2 pins: (uncomment if needed)
 // const int servoPins[8] = {4, 5, 6, 7, 15, 16, 17, 18};
 // Distro board V1 pins: (uncomment if needed)
-// const int servoPins[8] = {15, 2, 23, 19, 4, 16, 17, 18};
+const int servoPins[8] = {15, 2, 23, 19, 4, 16, 17, 18};  // plain ESP32 DevKit (this build)
 
 
 

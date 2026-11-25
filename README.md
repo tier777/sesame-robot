@@ -1,4 +1,6 @@
 # The Sesame Robot Project 
+
+> **Этот форк:** сборка на обычной ESP32 DevKit с питанием от пауэрбанка — см. [README.ru.md](README.ru.md).
 ___
 ![License](https://img.shields.io/badge/License-APACHE2.0-yellow)
 ![Microcontroller](https://img.shields.io/badge/Microcontroller-ESP32-blue)
