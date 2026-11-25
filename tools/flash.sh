@@ -14,7 +14,9 @@ work="${TMPDIR:-/tmp}/sesame-build"
 case "$which" in
   main)   name=sesame-firmware-main; files=(firmware/sesame-firmware-main.ino firmware/*.h) ;;
   tester) name=sesame-motor-tester;  files=(firmware/debugging-firmware/sesame-motor-tester.ino) ;;
-  *) echo "usage: $0 main|tester [port]"; exit 1 ;;
+  tester-c3) name=sesame-motor-tester; files=(firmware/debugging-firmware/sesame-motor-tester.ino)
+          fqbn="${FQBN:-esp32:esp32:esp32c3:CDCOnBoot=cdc}"; work="$work-c3" ;;
+  *) echo "usage: $0 main|tester|tester-c3 [port]"; exit 1 ;;
 esac
 
 rm -rf "$work/$name" && mkdir -p "$work/$name"

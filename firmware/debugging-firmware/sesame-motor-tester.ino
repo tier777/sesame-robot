@@ -15,7 +15,12 @@ Servo servos[8];
 // Distro board V2 pins: (uncomment if needed)
 // const int servoPins[8] = {4, 5, 6, 7, 15, 16, 17, 18};
 // Distro board V1 pins: (uncomment if needed)
+#if CONFIG_IDF_TARGET_ESP32C3
+// ESP32-C3 SuperMini, one-leg bench test: R1 (hip, id 0) on GPIO3, R3 (leg, id 5) on GPIO4; -1 = not wired
+const int servoPins[8] = {3, -1, -1, -1, -1, 4, -1, -1};
+#else
 const int servoPins[8] = {15, 2, 23, 19, 4, 16, 17, 18};  // plain ESP32 DevKit (this build)
+#endif
 
 
 
@@ -108,6 +113,8 @@ void moveMotor(int id, int angle) {
     Serial.println("Error: Motor ID must be 0-7");
     return;
   }
+
+  if (servoPins[id] < 0) return;  // not wired on this board
 
   // If servo isn't attached yet (powered off), attach it now
   if (!servos[id].attached()) {
