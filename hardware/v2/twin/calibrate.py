@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
@@ -202,6 +203,7 @@ def write_calibration(out: Path = P.OUT) -> Path:
         lines.append(f"| {ch} | {joint} | {gpio} | {P.CAD_POSE_FW[joint]} | {lo}–{hi} | " + " | ".join(pics) + " |")
     path = out / "calibration.md"
     path.write_text("\n".join(lines) + "\n")
+    (out / "safe_ranges.json").write_text(json.dumps({j: safe_range(j) for j in P.JOINTS}))
     return path
 
 
