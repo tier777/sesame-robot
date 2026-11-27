@@ -89,7 +89,7 @@ def from_grid(values: np.ndarray, origin, step: float) -> Field:
     return f
 
 
-def mesh(f: Field, lo, hi, step: float, chunk: int = 64_000_000) -> trimesh.Trimesh:
+def mesh(f: Field, lo, hi, step: float, chunk: int = 6_000_000) -> trimesh.Trimesh:
     lo, hi = _v(lo), _v(hi)
     axes = [np.arange(lo[i], hi[i] + step / 2, step) for i in range(3)]
     nx, ny, nz = map(len, axes)
