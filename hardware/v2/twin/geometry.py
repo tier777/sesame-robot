@@ -30,6 +30,7 @@ FOOT_OF = {"R1": "R3", "R2": "R4", "L1": "L3", "L2": "L4"}
 SPLINE_R = (2.40, 2.52)          # шлиц вала SG90/MG90S в модели автора: 60 граней радиусом 2,45–2,48 мм
 SKIP = ("Battery",)              # аккумуляторы автора: батарея этой сборки задаётся в params.py
 VISUAL_FACES = 20000
+HORN = "Pro.2_Pe"                 # подсборка сервы-качалка (внутренний шлиц 2,48 мм)
 
 
 @dataclass
@@ -82,18 +83,44 @@ def _read(step: str) -> tuple[Part, ...]:
         raise ValueError(f"не читается STEP: {step}")
     reader.Transfer(doc)
     parts = []
+    servo = None
     ex = XCAFPrs_DocumentExplorer(doc, XCAFPrs_DocumentExplorerFlags_None)
     while ex.More():
         node = ex.Current()
-        if ex.CurrentDepth() == 1:
-            name = _name(node.Label) or _name(node.RefLabel) or node.Id.ToCString()
-            shape = XCAFPrs_DocumentExplorer.FindShapeFromPathId_s(doc, node.Id)
+        depth = ex.CurrentDepth()
+        name = _name(node.Label) or _name(node.RefLabel) or node.Id.ToCString()
+        shape = XCAFPrs_DocumentExplorer.FindShapeFromPathId_s(doc, node.Id)
+        if depth == 1:
+            servo = name if ("SG90" in name and node.IsAssembly) else None
             if not any(s in name for s in SKIP):
-                mesh = _tessellate(shape)
-                if len(mesh.faces):
-                    parts.append(Part(name, mesh, shape))
+                if servo:
+                    parts.append(Part(name, _tessellate(_without_horn(doc, node)), shape))
+                else:
+                    mesh = _tessellate(shape)
+                    if len(mesh.faces):
+                        parts.append(Part(name, mesh, shape))
+        elif depth == 2 and servo and HORN in name:
+            # качалка сидит на валу и крутится вместе с тем, что на неё надето
+            parts.append(Part(f"{servo}::horn", _tessellate(shape), shape))
         ex.Next()
     return tuple(parts)
+
+
+def _without_horn(doc, node):
+    """Серва без качалки: корпус, вал и винты."""
+    from OCP.BRep import BRep_Builder
+    from OCP.TopoDS import TopoDS_Compound
+    comp, builder = TopoDS_Compound(), BRep_Builder()
+    builder.MakeCompound(comp)
+    sub = XCAFPrs_DocumentExplorer(doc, XCAFPrs_DocumentExplorerFlags_None)
+    prefix = node.Id.ToCString()
+    while sub.More():
+        n = sub.Current()
+        nm = _name(n.Label) or _name(n.RefLabel)
+        if sub.CurrentDepth() == 2 and n.Id.ToCString().startswith(prefix) and HORN not in nm:
+            builder.Add(comp, XCAFPrs_DocumentExplorer.FindShapeFromPathId_s(doc, n.Id))
+        sub.Next()
+    return comp
 
 
 def read_parts(step: Path) -> list[Part]:
@@ -104,7 +131,7 @@ def read_parts(step: Path) -> list[Part]:
 def find_servos(parts: list[Part]) -> list[Servo]:
     servos = []
     for p in parts:
-        if "SG90" not in p.name:
+        if "SG90" not in p.name or p.name.endswith("::horn"):
             continue
         pts, dirs = [], []
         ex = TopExp_Explorer(p.shape, TopAbs_FACE)
@@ -193,6 +220,10 @@ def _to_twin(mesh: trimesh.Trimesh, rot: np.ndarray, origin: np.ndarray) -> trim
 
 
 def _link_of(part: str, servo_joint: dict[str, str]) -> str:
+    if part.endswith("::horn"):
+        joint = servo_joint[part[:-len("::horn")]]
+        hip = joint if joint in HIPS else {v: k for k, v in FOOT_OF.items()}[joint]
+        return f"femur_{hip}"
     joint = servo_joint.get(part)
     if joint and joint not in HIPS:
         return f"foot_{joint}"
@@ -238,7 +269,7 @@ def build(step: Path, out_dir: Path) -> dict:
         visual.export(meshes / f"{link}.stl")
         hull_files, printed_volume = [], 0.0
         for p, m in twin_parts:
-            printed = not any(k in p.name for k in ("SG90", "Screw", "OLED", "Board", "KCD1", "Display"))
+            printed = not any(k in p.name for k in ("SG90", "::horn", "Screw", "OLED", "Board", "KCD1", "Display"))
             if printed:
                 printed_volume += abs(m.volume) / 1000
             for i, h in enumerate(_hulls(m, printed)):

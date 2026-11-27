@@ -64,3 +64,10 @@ def test_screws_ride_with_the_part_they_hold(geom):
     # винты крепления сервы лапы едут вместе с лапой, а не с корпусом
     for foot in ("foot_R3", "foot_R4", "foot_L3", "foot_L4"):
         assert sum("Screw" in p for p in geom["links"][foot]["parts"]) >= 2
+
+
+def test_horns_turn_with_the_femur(geom):
+    # качалка сидит на валу и крутится вместе с бедром; у серв лапы качалка прикручена к бедру
+    for hip in ("R1", "R2", "L1", "L2"):
+        assert sum(p.endswith("::horn") for p in geom["links"][f"femur_{hip}"]["parts"]) >= 1
+    assert not any(p.endswith("::horn") for p in geom["links"]["torso"]["parts"])

@@ -12,6 +12,7 @@ import trimesh
 
 HERE = Path(__file__).parent
 OUT = HERE / "out"
+STEP = HERE.parents[2] / "hardware" / "cad" / "Sesame-ESP32-v122.step"
 
 # каналы прошивки (enum ServoName в movement-sequences.h)
 CHANNEL = {"R1": 0, "R2": 1, "L1": 2, "L2": 3, "R4": 4, "R3": 5, "L3": 6, "L4": 7}
