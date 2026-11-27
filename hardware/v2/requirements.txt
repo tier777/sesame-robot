@@ -10,3 +10,5 @@ matplotlib
 pyserial
 pytest
 fast-simplification
+scikit-image
+shapely
