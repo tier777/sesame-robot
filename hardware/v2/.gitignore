@@ -1,6 +1,6 @@
 .venv/
 __pycache__/
-twin/meshes/
+twin/out/meshes/
 twin/traces/
 twin/out/logs/
 twin/firmware_trace/build/

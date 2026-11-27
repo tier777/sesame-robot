@@ -9,3 +9,4 @@ imageio-ffmpeg
 matplotlib
 pyserial
 pytest
+fast-simplification
