@@ -191,6 +191,22 @@ def lid_field(p: Params = DEFAULT) -> S.Field:
     return S.difference(S.union(plate, *ears), *holes)
 
 
+FACES = {"frame_v2": 400_000, "bay_lid_v2": 60_000}     # иначе STL на сотню мегабайт: слайсеру и git тяжело
+
+
+def slim(m, faces: int):
+    """Проредить сетку до faces треугольников и убрать вырожденное, чтобы она осталась замкнутой."""
+    import trimesh
+    if len(m.faces) <= faces:
+        return m
+    s = m.simplify_quadric_decimation(face_count=faces)
+    s.merge_vertices()
+    s.update_faces(s.nondegenerate_faces())
+    s.remove_unreferenced_vertices()
+    trimesh.repair.fill_holes(s)
+    return s
+
+
 def build(out_dir: Path = OUT, step: float = 0.15, p: Params = DEFAULT) -> dict:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -202,6 +218,7 @@ def build(out_dir: Path = OUT, step: float = 0.15, p: Params = DEFAULT) -> dict:
     bottom = p.bay_floor_z - p.lid_t - 2
     frame = S.mesh(frame_field(p), [lo[0] - 3, lo[1] - 3, bottom], hi + [3, 3, 3], step)
     lid = S.mesh(lid_field(p), [lo[0] - 3, lo[1] - 3, bottom], [hi[0] + 3, hi[1] + 3, p.bay_floor_z + 2], step)
+    frame, lid = slim(frame, FACES["frame_v2"]), slim(lid, FACES["bay_lid_v2"])
     for name, m in (("frame_v2", frame), ("bay_lid_v2", lid)):
         if not m.is_watertight:
             raise ValueError(f"{name}: сетка не замкнута")

@@ -69,3 +69,11 @@ def test_no_overhangs(built):
     frame, _ = built["meshes"]
     worst = overhang_patches(frame, bed_z=23.0)
     assert worst <= 20.0, f"нависание без опоры шириной {worst:.1f} мм"
+
+
+def test_slim_keeps_shape():
+    from body.sdf import box, mesh
+    m = mesh(box((20, 20, 10), r=2), (-11, -11, -6), (11, 11, 6), 0.15)
+    s = F.slim(m, 50000)                       # из 140 тыс.; плоский бокс сильнее не сжимается
+    assert len(s.faces) <= 50000 and s.is_watertight
+    assert abs(s.volume - m.volume) / m.volume < 0.005
