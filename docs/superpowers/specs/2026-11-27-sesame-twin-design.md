@@ -79,7 +79,7 @@ hardware/v2/.venv         — окружение Python, в .gitignore
 - `movement-sequences.h` собирается `clang++` на компьютере вместе с заглушкой `Arduino.h`:
   - `setServoAngle(ch, a)` пишет `(t, ch, a)` и, как в прошивке, сдвигает время на `motorCurrentDelay` (20 мс);
   - `delayWithFace(ms)` сдвигает время; `setFace*`, `Serial` — пустые;
-  - `pressingCheck` возвращает «продолжать» `walkCycles` раз (10), потом «стоп»;
+  - `pressingCheck` пропускает `walkCycles` (10) полных циклов ходьбы, потом «стоп» и stand, как в прошивке;
   - `frameDelay` 100 мс, `walkCycles` 10, `motorCurrentDelay` 20 мс — по умолчанию из прошивки, переопределяются.
 - Выход: `traces/<поза>.json` — список `(t_мс, канал, угол)` для всех 19 поз
   (rest, stand, wave, dance, swim, point, pushup, bow, cute, freaky, worm, shake, shrug, dead, crab,
