@@ -60,3 +60,19 @@ def test_video_written(tmp_path):
     log = run({"events": [[0, 0, 100]], "duration_ms": 300})
     render_video(log, tmp_path / "v.mp4")
     assert (tmp_path / "v.mp4").stat().st_size > 1000
+
+
+def test_out_of_safe_range_listed():
+    log = fake_log(n=10)
+    log.target_fw[5:, 1] = 0           # R2 в 0°
+    s = analyze(log, safe={"R2": (17, 94)})
+    assert s.out_of_range == [("R2", 0, (17, 94))]
+
+
+def test_margin_typical_and_share_outside():
+    log = fake_log(n=10)
+    log.com[:2, :2] = [0.05, 0]        # 2 кадра из 10 центр масс в 5 см снаружи опоры
+    s = analyze(log)
+    assert s.margin_min_mm == pytest.approx(-40)
+    assert s.margin_typical_mm == pytest.approx(10)
+    assert s.outside_share == pytest.approx(0.2)

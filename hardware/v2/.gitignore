@@ -4,3 +4,5 @@ twin/out/meshes/
 twin/traces/
 twin/out/logs/
 twin/firmware_trace/build/
+twin/out/*.xml
+twin/out/poses/

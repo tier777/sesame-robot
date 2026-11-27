@@ -77,7 +77,8 @@ def build_mjcf(geom: dict) -> str:
         s = P.joint_sign(name)
         lo, hi = sorted((P.fw_to_rad(name, 0), P.fw_to_rad(name, 180)))
         return (f'<joint name="{name}" type="hinge" axis="{_fmt(j["axis"])}" range="{lo:.6f} {hi:.6f}" '
-                f'limited="true" damping="0.01" armature="0.0005"/>')
+                f'limited="true" damping="{P.SERVO_TORQUE_NM / math.radians(P.SERVO_SPEED_DPS):.5f}" '
+                f'frictionloss="0.005" armature="0.0005"/>')
 
     feet = []
     for hip in P.HIPS:

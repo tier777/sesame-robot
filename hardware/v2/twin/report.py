@@ -32,6 +32,9 @@ class PoseStats:
     servos: list[ServoStats]
     collisions: list = field(default_factory=list)      # (тело_a, тело_b, t, fw[8])
     margin_min_mm: float = 0.0
+    margin_typical_mm: float = 0.0                         # медиана по времени
+    outside_share: float = 0.0                             # доля времени, когда центр масс вне опоры
+    out_of_range: list = field(default_factory=list)      # (сустав, угол, (lo, hi)) — команда за упором
     status: str = "ok"
     walk_dx_mm_per_cycle: float | None = None
     current_peak_a: float = 0.0
@@ -82,7 +85,7 @@ def _longest_run(mask: np.ndarray, dt: float) -> float:
     return best * dt
 
 
-def analyze(log: Log, walk_cycles: int | None = None) -> PoseStats:
+def analyze(log: Log, walk_cycles: int | None = None, safe: dict | None = None) -> PoseStats:
     dt = float(np.median(np.diff(log.t))) if len(log.t) > 1 else P.DT
     servos = []
     for ch in range(8):
@@ -102,6 +105,13 @@ def analyze(log: Log, walk_cycles: int | None = None) -> PoseStats:
     margins = [support_margin_mm(log.com[k, :2] * 1000, log.foot_contacts[k] * 1000)
                for k in range(len(log.t)) if len(log.foot_contacts[k])]
     total_i = current_a(log.torque).sum(axis=1)
+    out_of_range = []
+    for joint, (lo, hi) in (safe or {}).items():
+        cmd = log.target_fw[:, P.CHANNEL[joint]]
+        if len(cmd) and cmd.min() < lo:
+            out_of_range.append((joint, int(round(cmd.min())), (lo, hi)))
+        if len(cmd) and cmd.max() > hi:
+            out_of_range.append((joint, int(round(cmd.max())), (lo, hi)))
     dx = None
     if walk_cycles:
         tips = log.foot_tips[0]
@@ -110,6 +120,9 @@ def analyze(log: Log, walk_cycles: int | None = None) -> PoseStats:
         dx = float((log.torso_pos[-1, :2] - log.torso_pos[0, :2]) @ heading * 1000 / walk_cycles)
     return PoseStats(servos=servos, collisions=collisions,
                      margin_min_mm=float(min(margins)) if margins else float("-inf"),
+                     margin_typical_mm=float(np.median(margins)) if margins else float("-inf"),
+                     outside_share=float(np.mean(np.array(margins) < 0)) if margins else 1.0,
+                     out_of_range=out_of_range,
                      status=log.status, walk_dx_mm_per_cycle=dx,
                      current_peak_a=float(total_i.max()) if len(total_i) else 0.0,
                      current_mean_a=float(total_i.mean()) if len(total_i) else 0.0,
@@ -125,13 +138,15 @@ def write(stats: dict[str, PoseStats], failed: dict[str, str], out: Path, videos
     L = ["# Отчёт двойника Sesame", "",
          f"MG90S: упор {P.SERVO_TORQUE_NM} Н·м, скорость {P.SERVO_SPEED_DPS:.0f}°/с. "
          f"Ток — оценка {I_IDLE} А + {I_PER_NM} А/(Н·м) × момент на серву. "
-         "Запас устойчивости — от проекции центра масс до края опоры: плюс — внутри, минус — снаружи.", ""]
+         "Запас устойчивости — от проекции центра масс до края опоры: плюс — внутри, минус — снаружи; "
+         "«мин» — худшее мгновение (переходы, шаг на двух ногах), «обычно» — медиана по времени.", ""]
     if stats:
-        L += ["## Позы", "", "| Поза | Итог | Длится, с | Запас, мм | Ток пик / средний, А | Шаг, мм/цикл | Видео |",
-              "| --- | --- | --- | --- | --- | --- | --- |"]
+        L += ["## Позы", "", "| Поза | Итог | Длится, с | Запас мин / обычно, мм | Вне опоры | Ток пик / средний, А | Шаг, мм/цикл | Видео |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- |"]
         for name, s in stats.items():
             step = "" if s.walk_dx_mm_per_cycle is None else f"{s.walk_dx_mm_per_cycle:+.1f}"
-            L.append(f"| {name} | {STATUS_RU.get(s.status, s.status)} | {s.duration_s:.1f} | {s.margin_min_mm:.1f} | "
+            L.append(f"| {name} | {STATUS_RU.get(s.status, s.status)} | {s.duration_s:.1f} | "
+                     f"{s.margin_min_mm:.0f} / {s.margin_typical_mm:.0f} | {s.outside_share * 100:.0f} % | "
                      f"{s.current_peak_a:.2f} / {s.current_mean_a:.2f} | {step} | [mp4]({videos}/{name}.mp4) |")
         L += ["", "## Сервы", "", "Диапазон — во всех позах; пик момента и время в упоре — с позой, где они случились.", "",
               "| Канал | Сустав | Угол мин–макс | Скорость пик, °/с | Момент пик, % | Где | В упоре, с | Где |",
@@ -145,6 +160,11 @@ def write(stats: dict[str, PoseStats], failed: dict[str, str], out: Path, videos
             st_pose = max(per, key=lambda n: per[n].stall_s)
             L.append(f"| {ch} | {joint} | {lo:.0f}–{hi:.0f} | {sp:.0f} | {per[tp_pose].torque_peak_pct:.0f} | {tp_pose} | "
                      f"{per[st_pose].stall_s:.2f} | {st_pose if per[st_pose].stall_s else '—'} |")
+        L += ["", "## За упором", "",
+              "Команда прошивки дальше безопасного диапазона из калибровки (там деталь упирается в корпус "
+              "или соседнюю ногу): серва давит в упор, пока поза не сменится.", ""]
+        over = [(n, j, a, r) for n, s in stats.items() for j, a, r in s.out_of_range]
+        L += [f"- **{n}**: {j} → {a}°, безопасно {r[0]}–{r[1]}°" for n, j, a, r in over] or ["Нет."]
         L += ["", "## Столкновения", ""]
         any_hit = False
         for name, s in stats.items():

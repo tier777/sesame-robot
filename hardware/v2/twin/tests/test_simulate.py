@@ -42,3 +42,10 @@ def test_save_load_roundtrip(tmp_path):
     save(log, tmp_path / "x.pkl")
     again = load(tmp_path / "x.pkl")
     assert np.allclose(again.q_fw, log.q_fw) and again.status == log.status
+
+
+def test_joint_speed_is_servo_limited():
+    # MG90S: 60° за 0,1 с; момент падает со скоростью, поэтому сустав не разгоняется заметно быстрее
+    log = run({"events": [[0, 5, 0]], "duration_ms": 800})
+    speed = np.abs(np.diff(log.q_fw[:, 5]) / np.diff(log.t))
+    assert speed.max() < P.SERVO_SPEED_DPS * 1.1

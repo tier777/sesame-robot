@@ -299,3 +299,9 @@ def build(step: Path, out_dir: Path) -> dict:
             "links": links, "joints": joints, "servos": servo_info}
     (out_dir / "geometry.json").write_text(json.dumps(geom, indent=1, ensure_ascii=False))
     return geom
+
+
+if __name__ == "__main__":
+    from twin import params as P
+    g = build(P.STEP, P.OUT)
+    print(f"геометрия: {len(g['links'])} звеньев, {len(g['joints'])} суставов → {P.OUT / 'geometry.json'}")
