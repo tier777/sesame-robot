@@ -1,0 +1,11 @@
+mujoco
+numpy
+cadquery-ocp
+trimesh
+coacd
+scipy
+imageio
+imageio-ffmpeg
+matplotlib
+pyserial
+pytest
