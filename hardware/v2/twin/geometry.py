@@ -9,6 +9,7 @@ from pathlib import Path
 import coacd
 import numpy as np
 import trimesh
+from scipy.spatial import cKDTree
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Surface
 from OCP.BRepMesh import BRepMesh_IncrementalMesh
@@ -222,8 +223,13 @@ def build(step: Path, out_dir: Path) -> dict:
 
     links: dict[str, dict] = {}
     groups: dict[str, list[Part]] = {}
+    solid = [p for p in parts if "Screw" not in p.name]
+    trees = {p.name: cKDTree(p.mesh.vertices) for p in solid}
     for p in parts:
-        groups.setdefault(_link_of(p.name, servo_joint), []).append(p)
+        owner = p.name
+        if "Screw" in p.name:   # винт едет с той деталью, которую держит: ближайшая к нему деталь
+            owner = min(solid, key=lambda q: trees[q.name].query(p.mesh.centroid)[0]).name
+        groups.setdefault(_link_of(owner, servo_joint), []).append(p)
     for link, members in groups.items():
         twin_parts = [(p, _to_twin(p.mesh, rot, origin)) for p in members]
         visual = trimesh.util.concatenate([m for _, m in twin_parts])

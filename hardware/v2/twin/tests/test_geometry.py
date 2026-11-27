@@ -58,3 +58,9 @@ def test_missing_servo_is_named():
 def _servos(parts):
     from twin.geometry import find_servos
     return find_servos(parts)
+
+
+def test_screws_ride_with_the_part_they_hold(geom):
+    # винты крепления сервы лапы едут вместе с лапой, а не с корпусом
+    for foot in ("foot_R3", "foot_R4", "foot_L3", "foot_L4"):
+        assert sum("Screw" in p for p in geom["links"][foot]["parts"]) >= 2
