@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -90,8 +92,33 @@ def _pose_header(parts: list[tuple[str | None, str]], fn: str) -> str:
     return "".join(body for name, body in parts if name is None or name in need)
 
 
+MAX_OUTPUT = 2_000_000      # байт: поза, которая пишет без конца, тоже считается зависшей
+
+
+def _run_capped(exe: Path, timeout_s: float) -> tuple[str, str]:
+    """Запуск позы: вывод не больше MAX_OUTPUT, не дольше timeout_s. Возвращает (вывод, ошибка)."""
+    import tempfile
+    with tempfile.TemporaryFile() as out:
+        proc = subprocess.Popen([str(exe)], stdout=out, stderr=subprocess.STDOUT)
+        deadline = time.monotonic() + timeout_s
+        while proc.poll() is None:
+            too_long = time.monotonic() > deadline
+            too_big = os.fstat(out.fileno()).st_size > MAX_OUTPUT
+            if too_long or too_big:
+                proc.kill()
+                proc.wait()
+                why = f"не закончилась за {timeout_s:g} с" if too_long else f"вывод больше {MAX_OUTPUT} байт"
+                return "", f"зависла: {why} (цикл без pressingCheck?)"
+            time.sleep(0.02)
+        out.seek(0)
+        text = out.read().decode(errors="replace")
+    if proc.returncode != 0 or "END" not in text:
+        return "", _first_lines(text) or f"выход {proc.returncode}"
+    return text, ""
+
+
 def build_traces(firmware_dir: Path, out_dir: Path, frame_delay: int = 100,
-                 walk_cycles: int = 10, motor_delay: int = 20) -> TraceResult:
+                 walk_cycles: int = 10, motor_delay: int = 20, timeout_s: float = 20) -> TraceResult:
     firmware_dir, out_dir = Path(firmware_dir), Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     build = HERE / "build"
@@ -112,12 +139,12 @@ def build_traces(firmware_dir: Path, out_dir: Path, frame_delay: int = 100,
         if cc.returncode != 0:
             result.failed[name] = _first_lines(cc.stderr)
             continue
-        run = subprocess.run([str(exe)], capture_output=True, text=True, timeout=20)
-        if run.returncode != 0 or "END" not in run.stdout:
-            result.failed[name] = _first_lines(run.stderr) or f"выход {run.returncode}"
+        stdout, err = _run_capped(exe, timeout_s)
+        if err:
+            result.failed[name] = err
             continue
         events, duration = [], 0
-        for line in run.stdout.splitlines():
+        for line in stdout.splitlines():
             parts = line.split()
             if parts[0] == "END":
                 duration = int(parts[1])

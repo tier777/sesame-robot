@@ -6,3 +6,4 @@ twin/out/logs/
 twin/firmware_trace/build/
 twin/out/*.xml
 twin/out/poses/
+MUJOCO_LOG.TXT

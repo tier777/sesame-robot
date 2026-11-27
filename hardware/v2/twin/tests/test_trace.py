@@ -36,3 +36,9 @@ def test_bad_pose_does_not_stop_others(tmp_path):
     r = build_traces(FIXTURES / "bad_firmware", tmp_path)
     assert "wave" in r.failed and "runMoonwalk" in r.failed["wave"]
     assert "stand" in r.traces
+
+
+def test_hanging_pose_is_listed(tmp_path):
+    r = build_traces(FIXTURES / "hang_firmware", tmp_path, timeout_s=2)
+    assert "wave" in r.failed and "завис" in r.failed["wave"]
+    assert "stand" in r.traces

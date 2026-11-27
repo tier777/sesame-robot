@@ -41,6 +41,14 @@ def _tip_local(m: mujoco.MjModel) -> dict[str, tuple[int, np.ndarray]]:
     return out
 
 
+BLOWUP = (mujoco.mjtWarning.mjWARN_BADQACC, mujoco.mjtWarning.mjWARN_BADQVEL, mujoco.mjtWarning.mjWARN_BADQPOS)
+
+
+def blew_up(d: mujoco.MjData) -> bool:
+    """MuJoCo при NaN сам сбрасывает состояние в исходное — qpos остаётся конечным; ловим по предупреждениям."""
+    return any(d.warning[w].number > 0 for w in BLOWUP) or not np.isfinite(d.qpos).all()
+
+
 def run(trace: dict, settle_s: float = P.SETTLE_S, dt: float = P.DT, tail_s: float = 0.5,
         subtrim: list[int] | None = None) -> Log:
     m, d = M.load()
@@ -75,7 +83,7 @@ def run(trace: dict, settle_s: float = P.SETTLE_S, dt: float = P.DT, tail_s: flo
         target += np.clip(command - target, -max_step, max_step)
         d.ctrl[:] = target
         mujoco.mj_step(m, d)
-        if not np.isfinite(d.qpos).all():
+        if blew_up(d):
             status = "unstable"
             break
         tilt = math.degrees(math.acos(max(-1.0, min(1.0, d.xmat[torso][8]))))

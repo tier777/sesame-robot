@@ -49,3 +49,15 @@ def test_joint_speed_is_servo_limited():
     log = run({"events": [[0, 5, 0]], "duration_ms": 800})
     speed = np.abs(np.diff(log.q_fw[:, 5]) / np.diff(log.t))
     assert speed.max() < P.SERVO_SPEED_DPS * 1.1
+
+
+def test_blowup_detected():
+    import mujoco
+    from twin import model as M
+    from twin.simulate import blew_up
+    m, d = M.load()
+    M.set_pose(m, d, P.STAND_FW)
+    assert not blew_up(d)
+    d.qvel[0] = np.nan
+    mujoco.mj_step(m, d)
+    assert blew_up(d)
