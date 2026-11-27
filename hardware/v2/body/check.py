@@ -57,6 +57,18 @@ def fits(frame: S.Field, lid: S.Field, p=None) -> list[str]:
     _board("зарядка", p.charger, (cx, (w[1] + w[2]) / 2, p.deck_top + p.charger[2] / 2), frame, msgs)
     # плата защиты лежит на держателе в отсеке
     _board("плата защиты", p.bms, (0, 0, p.bay_floor_z + p.holder[2] + p.bms[2] / 2 + 0.3), frame, msgs)
+    # на деке под крышкой: усилитель спереди, MPU-6500 под DevKit (DevKit стоит на штырях ~8,5 мм)
+    _board("усилитель", p.amp, (20.0, 5.0, p.deck_top + p.amp[2] / 2 + 0.2), frame, msgs)
+    _board("MPU-6500", p.mpu, (0.0, 0.0, p.deck_top + p.mpu[2] / 2 + 0.2), frame, msgs)
+    if p.mpu[2] > 7.5:
+        msgs.append(f"MPU-6500 высотой {p.mpu[2]:g} мм не пролезет под DevKit на штырях: нужно не выше 7,5 мм")
+    # динамик и микрофон стоят торцом между отсеком и стенкой: диаметр ограничен высотой и шириной этого места
+    room_h = 2 * min(p.speaker_z - p.bay_floor_z, p.deck_top - p.deck_t - p.speaker_z)
+    room_w = 2 * p.bay_outer[1]
+    for name, dia in (("динамик", p.speaker[0]), ("микрофон", p.mic[0])):
+        need = dia + 0.6 - min(room_h, room_w)
+        if need > 0:
+            msgs.append(f"{name} ⌀{dia:g} не входит в своё место: нужно ещё {need:.1f} мм или поменьше")
     return msgs
 
 

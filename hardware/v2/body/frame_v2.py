@@ -48,8 +48,8 @@ class Params:
     amp: tuple = (19.0, 18.0, 3.0)         # MAX98357A
     speaker: tuple = (20.0, 4.5)           # ⌀ × толщина
     mic: tuple = (14.0, 3.0)               # INMP441, ⌀ × толщина
-    speaker_center: tuple = (35.6, 0.0, 9.0)
-    mic_center: tuple = (-37.6, 0.0, 9.0)
+    speaker_z: float = 9.0
+    mic_z: float = 9.0
     lid_screws: tuple = ((0.0, 20.0), (0.0, -20.0))
 
     @property
@@ -103,7 +103,8 @@ def _servo_parts(p: Params):
         solids.append(S.box(wh - wl, (wl + wh) / 2, r=0.8))
         cuts.append(S.box(hi - lo + [0, 0, 20], c + [0, 0, 10]))                       # корпус насквозь вверх
         fl = np.array([p.flange[0] + 2 * p.servo_gap, p.flange[1] + 2 * p.servo_gap, 20.0])
-        cuts.append(S.box(fl, (c[0], c[1], p.flange_bottom_z + 10)))                     # фланец как у v1
+        hc = (s.flange_holes[0] + s.flange_holes[1]) / 2                                   # фланец — по его отверстиям
+        cuts.append(S.box(fl, (hc[0], hc[1], p.flange_bottom_z + 10)))                    # высота как у v1
         for h in s.flange_holes:
             cuts.append(S.cylinder(p.pilot / 2, 12, (h[0], h[1], p.deck_top - 6)))
         # внутренняя сторона (к отсеку) — без стенки, провод свободно уходит вниз и вбок
@@ -126,6 +127,17 @@ def _deck(p: Params) -> S.Field:
     return S.union(body, *tabs)
 
 
+def sound_seats(p: Params = DEFAULT) -> dict:
+    """Гнёзда звука вдоль X: (x сзади, x спереди, z центра). Динамик — вплотную к передней стенке изнутри,
+    микрофон — вплотную к задней стенке изнутри."""
+    v1 = load()
+    fx, rx = v1.frame_mesh.bounds[1][0], v1.frame_mesh.bounds[0][0]
+    front_inner = fx - 0.3 - p.wall
+    rear_inner = rx + 0.3 + p.wall
+    return {"speaker": (front_inner - p.speaker[1] - 0.4, front_inner, p.speaker_z),
+            "mic": (rear_inner, rear_inner + p.mic[1] + 0.4, p.mic_z)}
+
+
 def frame_field(p: Params = DEFAULT) -> S.Field:
     return _frame_cached(p)
 
@@ -146,31 +158,48 @@ def _frame_cached(p: Params) -> S.Field:
     sides = [S.box((fx - rx - 0.6, p.wall, zh + 0.5), (0.5 * (fx + rx), s * (bo[1] - p.wall / 2), zc + 0.25), r=0.6)
              for s in (1, -1)]
     bosses = [S.cylinder(2.6, zh + 0.5, (x, y, zc + 0.25)) for x, y in p.lid_screws]
+    seats = sound_seats(p)
+    backstops = []
+    for name, (dia, _), in (("speaker", p.speaker), ("mic", p.mic)):
+        xb, xf, z = seats[name]
+        x0, x1 = (xb - 1.5, xb) if name == "speaker" else (xf, xf + 1.5)
+        backstops.append(S.box((x1 - x0, dia + 3.0, zh + 0.5), ((x0 + x1) / 2, 0, zc + 0.25), r=0.4))
     servo_solids, servo_cuts = _servo_parts(p)
-    shell = S.smooth_union(deck, S.union(bay_walls, front, rear, *sides, *bosses, *servo_solids), p.fillet)
+    shell = S.smooth_union(deck, S.union(bay_walls, front, rear, *sides, *bosses, *backstops, *servo_solids), p.fillet)
+    # плавное слияние приподнимает стык над декой — срезаем всё выше деки: на ней лежит крышка, ею рама ложится на стол
+    shell = S.difference(shell, S.slab_z(p.deck_top, p.deck_top + 60))
 
     cuts = list(servo_cuts)
-    cuts.append(S.box((2 * bi[0], 2 * bi[1], zh + 2), (0, 0, zc)))                        # карман отсека
+    pocket_lo, pocket_hi = p.bay_floor_z - 3, p.deck_top - p.deck_t                        # карман отсека до низа деки
+    cuts.append(S.box((2 * bi[0], 2 * bi[1], pocket_hi - pocket_lo), (0, 0, (pocket_lo + pocket_hi) / 2)))
     cuts.append(_wall_windows(p))
     for x, y in v1.cover_screws:                                                           # саморезы крышки снизу
         cuts.append(S.cylinder(p.clear / 2, 10, (x, y, p.deck_top - 2)))
+        lo_z, hi_z = p.bay_floor_z - 5, p.deck_top - p.deck_t                              # колодец под отвёртку
+        cuts.append(S.cylinder(2.8, hi_z - lo_z, (x, y, (lo_z + hi_z) / 2)))
     for x, y in p.lid_screws:
         cuts.append(S.cylinder(p.pilot / 2, 12, (x, y, p.bay_floor_z + 5.5)))
     for y in (8.0, -8.0):                                                                  # провода из отсека на деку
         cuts.append(S.cylinder(3.0, 6, (-24.0, y, p.deck_top - 1)))
-    # динамик: гнездо в передней части, решётка в стенке; открыто снизу, держит крышка отсека
-    sc = np.array(p.speaker_center)
-    cuts.append(S.cylinder(p.speaker[0] / 2 + 0.3, p.speaker[1] + 0.4, sc - [p.speaker[1] / 2 + 0.6, 0, 0], axis="x"))
-    cuts.append(S.box((p.speaker[1] + 0.4, p.speaker[0] + 0.6, 30), sc - [p.speaker[1] / 2 + 0.6, 0, 15]))
+    # динамик и микрофон: гнездо вплотную к стенке (решётка / отверстие напротив), сзади упор; вставляются снизу,
+    # снизу их держит крышка отсека
+    seats = sound_seats(p)
+    for name, (dia, t), side in (("speaker", p.speaker, 1), ("mic", p.mic, -1)):
+        xb, xf, z = seats[name]
+        r = dia / 2 + 0.3
+        cuts.append(S.cylinder(r, xf - xb, ((xb + xf) / 2, 0, z), axis="x"))
+        cuts.append(S.box((xf - xb, 2 * r, z - p.bay_floor_z + 5), ((xb + xf) / 2, 0, (z + p.bay_floor_z - 5) / 2)))
+    xb, xf, z = seats["speaker"]
     for gy in np.arange(-6, 6.1, 3.0):
         for gz in np.arange(-6, 6.1, 3.0):
             if gy * gy + gz * gz <= 49:
-                cuts.append(S.cylinder(0.75, 6, sc + [3, gy, gz], axis="x"))
-    # микрофон: гнездо у задней стенки и отверстие напротив порта
-    mc = np.array(p.mic_center)
-    cuts.append(S.cylinder(p.mic[0] / 2 + 0.3, p.mic[1] + 0.4, mc, axis="x"))
-    cuts.append(S.box((p.mic[1] + 0.4, p.mic[0] + 0.6, 30), mc - [0, 0, 15]))
-    cuts.append(S.cylinder(1.0, 6, mc - [3, 0, 0], axis="x"))
+                cuts.append(S.cylinder(0.75, 6, (xf + p.wall / 2, gy, z + gz), axis="x"))
+    xb, xf, z = seats["mic"]
+    cuts.append(S.cylinder(1.0, 6, (xb - p.wall / 2, 0, z), axis="x"))
+    for name in ("speaker", "mic"):                                                         # провод из-за упора
+        xb, xf, z = seats[name]
+        back = xb - 0.6 if name == "speaker" else xf + 0.6
+        cuts.append(S.box((1.4, 4.0, 10.0), (back, 0, z)))
     # прорези под стяжки на деке: зарядка у задней стенки, MPU-6500 по центру, усилитель и макетка спереди
     w = v1.cover_usb_window
     cy = (w[1] + w[2]) / 2
