@@ -76,7 +76,7 @@
     "meshes/torso_25.stl",
     "meshes/torso_26.stl"
    ],
-   "printed_volume_cm3": 36.214,
+   "printed_volume_cm3": 38.926,
    "extra_parts": {
     "frame_v2": "meshes/frame_v2.stl",
     "bay_lid_v2": "meshes/bay_lid_v2.stl"
