@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import trimesh
 
-from conftest import REPO
+from testpaths import REPO
 from twin.geometry import Servo, assign_servos, build, read_parts
 
 STEP = REPO / "hardware/cad/Sesame-ESP32-v122.step"

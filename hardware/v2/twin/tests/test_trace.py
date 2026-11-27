@@ -1,6 +1,6 @@
 import json
 
-from conftest import FIRMWARE, FIXTURES
+from testpaths import FIRMWARE, FIXTURES
 from twin.firmware_trace.trace import POSES, build_traces
 
 

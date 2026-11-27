@@ -1,4 +1,4 @@
-from conftest import FIRMWARE
+from testpaths import FIRMWARE
 from twin import params as P
 from twin.calibrate import HornFix, channel_table, horn_fix, main, safe_range
 

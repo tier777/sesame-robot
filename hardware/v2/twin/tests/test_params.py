@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from conftest import FIRMWARE
+from testpaths import FIRMWARE
 from twin import params as P
 
 INO = FIRMWARE / "sesame-firmware-main.ino"

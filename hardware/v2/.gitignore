@@ -12,3 +12,4 @@ body/out/*.npy
 twin/out_v2/meshes/
 twin/out_v2/logs/
 twin/out_v2/*.xml
+body/out/render_parts/
