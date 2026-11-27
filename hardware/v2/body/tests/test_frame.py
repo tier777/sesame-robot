@@ -131,3 +131,32 @@ def test_mic_wall_thick_enough():
 def test_big_speaker_reported():
     big = F.Params(speaker=(30.0, 4.5))
     assert any("динамик" in m for m in fits(F.frame_field(big), F.lid_field(big), big))
+
+
+def test_slim_retries_until_watertight(monkeypatch):
+    import trimesh
+    from body.sdf import box, mesh
+    m = mesh(box((20, 20, 10), r=2), (-11, -11, -6), (11, 11, 6), 0.15)
+    real = trimesh.Trimesh.simplify_quadric_decimation
+    calls = []
+
+    def flaky(self, *a, **k):
+        out = real(self, *a, **k)
+        calls.append(k.get("face_count"))
+        if len(calls) == 1:                      # первая попытка — с дырой
+            out = trimesh.Trimesh(out.vertices, np.vstack([out.faces, out.faces[:1]]), process=False)  # неразделимое ребро
+        return out
+    monkeypatch.setattr(trimesh.Trimesh, "simplify_quadric_decimation", flaky)
+    s = F.slim(m, 50000)
+    assert s.is_watertight and len(calls) >= 2 and calls[1] > calls[0]
+
+
+def test_slim_gives_up_loudly(monkeypatch):
+    import trimesh
+    from body.sdf import box, mesh
+    m = mesh(box((20, 20, 10), r=2), (-11, -11, -6), (11, 11, 6), 0.15)
+    real = trimesh.Trimesh.simplify_quadric_decimation
+    monkeypatch.setattr(trimesh.Trimesh, "simplify_quadric_decimation",
+                        lambda self, *a, **k: (lambda o: trimesh.Trimesh(o.vertices, np.vstack([o.faces, o.faces[:1]]), process=False))(real(self, *a, **k)))
+    s = F.slim(m, 50000)
+    assert s is m                                # не вышло — остаётся исходная замкнутая сетка, без дыр

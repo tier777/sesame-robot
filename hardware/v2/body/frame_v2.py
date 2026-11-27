@@ -224,16 +224,23 @@ FACES = {"frame_v2": 400_000, "bay_lid_v2": 60_000}     # иначе STL на с
 
 
 def slim(m, faces: int):
-    """Проредить сетку до faces треугольников и убрать вырожденное, чтобы она осталась замкнутой."""
+    """Проредить сетку до faces треугольников так, чтобы она осталась замкнутой. Если прореживание рвёт сетку,
+    пробуется помягче (×1,5, ×2,25); не вышло — возвращается исходная сетка (тяжелее, но целая)."""
     import trimesh
     if len(m.faces) <= faces:
         return m
-    s = m.simplify_quadric_decimation(face_count=faces)
-    s.merge_vertices()
-    s.update_faces(s.nondegenerate_faces())
-    s.remove_unreferenced_vertices()
-    trimesh.repair.fill_holes(s)
-    return s
+    for target in (faces, int(faces * 1.5), int(faces * 2.25)):
+        if target >= len(m.faces):
+            break
+        s = m.simplify_quadric_decimation(face_count=target)
+        s.merge_vertices()
+        s.update_faces(s.nondegenerate_faces())
+        s.remove_unreferenced_vertices()
+        trimesh.repair.fill_holes(s)
+        if s.is_watertight and abs(s.volume - m.volume) < 0.005 * abs(m.volume):
+            return s
+    print(f"сетка не прореживается без дыр — оставляю полную ({len(m.faces)} треугольников)")
+    return m
 
 
 def build(out_dir: Path = OUT, step: float = 0.15, p: Params = DEFAULT) -> dict:
