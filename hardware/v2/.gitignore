@@ -7,3 +7,5 @@ twin/firmware_trace/build/
 twin/out/*.xml
 twin/out/poses/
 MUJOCO_LOG.TXT
+body/out/*.json
+body/out/*.npy
