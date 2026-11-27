@@ -28,6 +28,7 @@ class Log:
     foot_contacts: list = field(default_factory=list)   # на шаг: массив xy точек касания пола
     contacts: list = field(default_factory=list)        # на шаг: [(тело_a, тело_b, сила Н)] кроме пола
     status: str = "ok"                # ok | fell | unstable
+    qpos: np.ndarray | None = None    # N×nq, для видео
 
 
 def _tip_local(m: mujoco.MjModel) -> dict[str, tuple[int, np.ndarray]]:
@@ -58,7 +59,7 @@ def run(trace: dict, settle_s: float = P.SETTLE_S, dt: float = P.DT, tail_s: flo
     torso = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "torso")
     floor = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, "floor")
     tips = _tip_local(m)
-    rec = {k: [] for k in ("t", "target", "q", "torque", "com", "pos", "tilt", "tips")}
+    rec = {k: [] for k in ("t", "target", "q", "torque", "com", "pos", "tilt", "tips", "qpos")}
     foot_contacts, contacts, status = [], [], "ok"
     max_step = P.SERVO_SPEED_DPS * dt
     ei = 0
@@ -85,6 +86,7 @@ def run(trace: dict, settle_s: float = P.SETTLE_S, dt: float = P.DT, tail_s: flo
         rec["com"].append(d.subtree_com[torso].copy())
         rec["pos"].append(d.xpos[torso].copy())
         rec["tilt"].append(tilt)
+        rec["qpos"].append(d.qpos.copy())
         rec["tips"].append([d.xpos[b] + d.xmat[b].reshape(3, 3) @ off for b, off in tips.values()])
         fc, other = [], []
         for i, c in enumerate(d.contact[:d.ncon]):
@@ -107,7 +109,7 @@ def run(trace: dict, settle_s: float = P.SETTLE_S, dt: float = P.DT, tail_s: flo
                torque=arr["torque"].reshape(-1, 8), com=arr["com"].reshape(-1, 3),
                torso_pos=arr["pos"].reshape(-1, 3), torso_tilt_deg=arr["tilt"],
                foot_tips=arr["tips"].reshape(-1, 4, 3), foot_contacts=foot_contacts,
-               contacts=contacts, status=status)
+               contacts=contacts, status=status, qpos=arr["qpos"].reshape(-1, m.nq))
 
 
 def foot_slip_mm(log: Log) -> float:
