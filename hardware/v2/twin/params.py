@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -11,7 +12,8 @@ import numpy as np
 import trimesh
 
 HERE = Path(__file__).parent
-OUT = HERE / "out"
+VARIANT = os.environ.get("SESAME_TWIN_VARIANT", "v1")   # v1 — корпус автора; v2 — рама v2 с батареей внутри
+OUT = HERE / ("out" if VARIANT == "v1" else f"out_{VARIANT}")
 STEP = HERE.parents[2] / "hardware" / "cad" / "Sesame-ESP32-v122.step"
 
 # каналы прошивки (enum ServoName в movement-sequences.h)
@@ -43,7 +45,9 @@ DENSITY_PETG = 1270.0      # кг/м³
 DENSITY_PLA = 1240.0
 INFILL_FACTOR = 0.55
 DEVKIT_G, OLED_G, MINI560_G = 10.0, 3.0, 3.0
-BATTERY = {"mass_g": 50.0, "size_mm": [58.0, 31.0, 16.0], "center_mm": [-1.0, 0.0, 74.0]}  # отсек на седле
+BATTERY_V1 = {"mass_g": 50.0, "size_mm": [58.0, 31.0, 16.0], "center_mm": [-1.0, 0.0, 74.0]}  # отсек на седле
+BATTERY_V2 = {"mass_g": 50.0, "size_mm": [58.0, 31.0, 16.0], "center_mm": [0.0, 0.0, 5.6]}   # отсек внутри рамы v2
+BATTERY = BATTERY_V1 if VARIANT == "v1" else BATTERY_V2
 
 # симуляция
 DT = 0.002
@@ -52,7 +56,8 @@ SETTLE_S = 0.5
 
 
 @lru_cache(maxsize=1)
-def geometry(path: Path = OUT / "geometry.json") -> dict:
+def geometry(path: Path | None = None) -> dict:
+    path = path or OUT / "geometry.json"          # OUT меняется при use_variant — не запоминать его при импорте
     if not Path(path).exists():
         raise FileNotFoundError(f"нет {path}: сначала python -m twin.geometry")
     return json.loads(Path(path).read_text())
@@ -152,3 +157,20 @@ def femur_direction(hip: str, fw: float) -> np.ndarray:
 def foot_direction(foot: str, fw: float) -> np.ndarray:
     """Единичный вектор от оси колена к кончику лапы при угле прошивки fw (бедро в позе сборки)."""
     return _foot(foot, fw, joint_sign(foot))
+
+
+def use_variant(name: str) -> None:
+    """Переключить двойник на вариант корпуса (v1 / v2) в этом процессе: OUT, батарея и все кеши."""
+    global VARIANT, OUT, BATTERY
+    VARIANT = name
+    OUT = HERE / ("out" if name == "v1" else f"out_{name}")
+    BATTERY = BATTERY_V1 if name == "v1" else BATTERY_V2
+    geometry.cache_clear()
+    joint_sign.cache_clear()
+    _foot_tip.cache_clear()
+    import sys
+    for mod, names in (("twin.model", ("_compiled",)),
+                       ("twin.calibrate", ("safe_range", "_occupancy", "_moving_points"))):
+        if mod in sys.modules:
+            for n in names:
+                getattr(sys.modules[mod], n).cache_clear()

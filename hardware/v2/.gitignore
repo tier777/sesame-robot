@@ -9,3 +9,6 @@ twin/out/poses/
 MUJOCO_LOG.TXT
 body/out/*.json
 body/out/*.npy
+twin/out_v2/meshes/
+twin/out_v2/logs/
+twin/out_v2/*.xml

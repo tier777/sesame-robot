@@ -1,0 +1,686 @@
+{
+ "frame": {
+  "cad_to_twin": [
+   [
+    -1.0,
+    0.0,
+    -0.0
+   ],
+   [
+    -0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ]
+  ],
+  "origin_mm": [
+   25.723270630405537,
+   -1.001983098134868,
+   2.383227678176466
+  ]
+ },
+ "links": {
+  "torso": {
+   "parts": [
+    "SG90 - Micro Servo 9g - Tower Pro v4:1",
+    "SG90 - Micro Servo 9g - Tower Pro v4:2",
+    "SG90 - Micro Servo 9g - Tower Pro v4:3",
+    "SG90 - Micro Servo 9g - Tower Pro v4:4",
+    "Display_OLED_0.96_128x64 v5:1",
+    "S2 Mini Board_no_hdr v1:2",
+    "KCD1-B2-3P-On v1:1",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:2",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:3",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:4",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:10",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:11",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:12",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:13",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:14",
+    "OLED-128x64-0.96 v1:1",
+    "=>[0:1:1:108]",
+    "frame_v2",
+    "bay_lid_v2"
+   ],
+   "visual": "meshes/torso.stl",
+   "hulls": [
+    "meshes/torso_00.stl",
+    "meshes/torso_01.stl",
+    "meshes/torso_02.stl",
+    "meshes/torso_03.stl",
+    "meshes/torso_04.stl",
+    "meshes/torso_05.stl",
+    "meshes/torso_06.stl",
+    "meshes/torso_07.stl",
+    "meshes/torso_08.stl",
+    "meshes/torso_09.stl",
+    "meshes/torso_10.stl",
+    "meshes/torso_11.stl",
+    "meshes/torso_12.stl",
+    "meshes/torso_13.stl",
+    "meshes/torso_14.stl",
+    "meshes/torso_15.stl",
+    "meshes/torso_16.stl",
+    "meshes/torso_17.stl",
+    "meshes/torso_18.stl",
+    "meshes/torso_19.stl",
+    "meshes/torso_20.stl",
+    "meshes/torso_21.stl",
+    "meshes/torso_22.stl",
+    "meshes/torso_23.stl",
+    "meshes/torso_24.stl",
+    "meshes/torso_25.stl",
+    "meshes/torso_26.stl"
+   ],
+   "printed_volume_cm3": 36.214,
+   "extra_parts": {
+    "frame_v2": "meshes/frame_v2.stl",
+    "bay_lid_v2": "meshes/bay_lid_v2.stl"
+   }
+  },
+  "femur_L1": {
+   "parts": [
+    "SG90 - Micro Servo 9g - Tower Pro v4:1::horn",
+    "femur-joint-L1:1",
+    "91420A001_Steel Phillips Flat Head Screws:1",
+    "91420A001_Steel Phillips Flat Head Screws:10",
+    "91420A001_Steel Phillips Flat Head Screws:15"
+   ],
+   "visual": "meshes/femur_L1.stl",
+   "hulls": [
+    "meshes/femur_L1_00.stl",
+    "meshes/femur_L1_01.stl",
+    "meshes/femur_L1_02.stl",
+    "meshes/femur_L1_03.stl",
+    "meshes/femur_L1_04.stl",
+    "meshes/femur_L1_05.stl",
+    "meshes/femur_L1_06.stl",
+    "meshes/femur_L1_07.stl"
+   ],
+   "printed_volume_cm3": 5.209
+  },
+  "femur_R1": {
+   "parts": [
+    "SG90 - Micro Servo 9g - Tower Pro v4:2::horn",
+    "femur-joint-R1:1",
+    "91420A001_Steel Phillips Flat Head Screws:3",
+    "91420A001_Steel Phillips Flat Head Screws:6",
+    "91420A001_Steel Phillips Flat Head Screws:8"
+   ],
+   "visual": "meshes/femur_R1.stl",
+   "hulls": [
+    "meshes/femur_R1_00.stl",
+    "meshes/femur_R1_01.stl",
+    "meshes/femur_R1_02.stl",
+    "meshes/femur_R1_03.stl",
+    "meshes/femur_R1_04.stl",
+    "meshes/femur_R1_05.stl",
+    "meshes/femur_R1_06.stl",
+    "meshes/femur_R1_07.stl"
+   ],
+   "printed_volume_cm3": 5.205
+  },
+  "femur_R2": {
+   "parts": [
+    "SG90 - Micro Servo 9g - Tower Pro v4:3::horn",
+    "femurjoint-R2:2",
+    "SG90 - Micro Servo 9g - Tower Pro v4:6::horn",
+    "91420A001_Steel Phillips Flat Head Screws:12",
+    "91420A001_Steel Phillips Flat Head Screws:13",
+    "91420A001_Steel Phillips Flat Head Screws:14"
+   ],
+   "visual": "meshes/femur_R2.stl",
+   "hulls": [
+    "meshes/femur_R2_00.stl",
+    "meshes/femur_R2_01.stl",
+    "meshes/femur_R2_02.stl",
+    "meshes/femur_R2_03.stl",
+    "meshes/femur_R2_04.stl",
+    "meshes/femur_R2_05.stl",
+    "meshes/femur_R2_06.stl",
+    "meshes/femur_R2_07.stl",
+    "meshes/femur_R2_08.stl"
+   ],
+   "printed_volume_cm3": 5.188
+  },
+  "femur_L2": {
+   "parts": [
+    "SG90 - Micro Servo 9g - Tower Pro v4:4::horn",
+    "femur-joint-L2:2",
+    "SG90 - Micro Servo 9g - Tower Pro v4:7::horn",
+    "91420A001_Steel Phillips Flat Head Screws:2",
+    "91420A001_Steel Phillips Flat Head Screws:4",
+    "91420A001_Steel Phillips Flat Head Screws:5"
+   ],
+   "visual": "meshes/femur_L2.stl",
+   "hulls": [
+    "meshes/femur_L2_00.stl",
+    "meshes/femur_L2_01.stl",
+    "meshes/femur_L2_02.stl",
+    "meshes/femur_L2_03.stl",
+    "meshes/femur_L2_04.stl",
+    "meshes/femur_L2_05.stl",
+    "meshes/femur_L2_06.stl",
+    "meshes/femur_L2_07.stl",
+    "meshes/femur_L2_08.stl"
+   ],
+   "printed_volume_cm3": 5.206
+  },
+  "foot_R4": {
+   "parts": [
+    "foot-joint-R4:2",
+    "SG90 - Micro Servo 9g - Tower Pro v4:6",
+    "91420A001_Steel Phillips Flat Head Screws:11",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:7",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:15"
+   ],
+   "visual": "meshes/foot_R4.stl",
+   "hulls": [
+    "meshes/foot_R4_00.stl",
+    "meshes/foot_R4_01.stl",
+    "meshes/foot_R4_02.stl",
+    "meshes/foot_R4_03.stl",
+    "meshes/foot_R4_04.stl",
+    "meshes/foot_R4_05.stl",
+    "meshes/foot_R4_06.stl",
+    "meshes/foot_R4_07.stl"
+   ],
+   "printed_volume_cm3": 4.695
+  },
+  "foot_L4": {
+   "parts": [
+    "foot-joint-L4:2",
+    "SG90 - Micro Servo 9g - Tower Pro v4:7",
+    "91420A001_Steel Phillips Flat Head Screws:7",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:5",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:6"
+   ],
+   "visual": "meshes/foot_L4.stl",
+   "hulls": [
+    "meshes/foot_L4_00.stl",
+    "meshes/foot_L4_01.stl",
+    "meshes/foot_L4_02.stl",
+    "meshes/foot_L4_03.stl",
+    "meshes/foot_L4_04.stl",
+    "meshes/foot_L4_05.stl",
+    "meshes/foot_L4_06.stl",
+    "meshes/foot_L4_07.stl"
+   ],
+   "printed_volume_cm3": 4.709
+  },
+  "foot_L3": {
+   "parts": [
+    "foot-joint-L3:1",
+    "SG90 - Micro Servo 9g - Tower Pro.1_Pea(Mirror) (1):1",
+    "91420A001_Steel Phillips Flat Head Screws:16",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:1",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:8"
+   ],
+   "visual": "meshes/foot_L3.stl",
+   "hulls": [
+    "meshes/foot_L3_00.stl",
+    "meshes/foot_L3_01.stl",
+    "meshes/foot_L3_02.stl",
+    "meshes/foot_L3_03.stl",
+    "meshes/foot_L3_04.stl",
+    "meshes/foot_L3_05.stl",
+    "meshes/foot_L3_06.stl",
+    "meshes/foot_L3_07.stl"
+   ],
+   "printed_volume_cm3": 4.691
+  },
+  "foot_R3": {
+   "parts": [
+    "SG90 - Micro Servo 9g - Tower Pro.1_Pea(Mirror) (1):2",
+    "foot-joint-R3:1",
+    "91420A001_Steel Phillips Flat Head Screws:9",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:9",
+    "92000A011_Passivated 18-8 Stainless Steel Pan Head Phillips Screws:16"
+   ],
+   "visual": "meshes/foot_R3.stl",
+   "hulls": [
+    "meshes/foot_R3_00.stl",
+    "meshes/foot_R3_01.stl",
+    "meshes/foot_R3_02.stl",
+    "meshes/foot_R3_03.stl",
+    "meshes/foot_R3_04.stl",
+    "meshes/foot_R3_05.stl",
+    "meshes/foot_R3_06.stl",
+    "meshes/foot_R3_07.stl"
+   ],
+   "printed_volume_cm3": 4.709
+  }
+ },
+ "joints": {
+  "R1": {
+   "parent": "torso",
+   "child": "femur_R1",
+   "anchor_mm": [
+    24.2,
+    -25.3793,
+    34.1633
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    1.0
+   ]
+  },
+  "R3": {
+   "parent": "femur_R1",
+   "child": "foot_R3",
+   "anchor_mm": [
+    44.8802,
+    -56.8633,
+    16.4175
+   ],
+   "axis": [
+    -0.707107,
+    -0.707107,
+    -0.0
+   ]
+  },
+  "R2": {
+   "parent": "torso",
+   "child": "femur_R2",
+   "anchor_mm": [
+    -24.2,
+    -25.4207,
+    34.1633
+   ],
+   "axis": [
+    0.0,
+    -0.0,
+    1.0
+   ]
+  },
+  "R4": {
+   "parent": "femur_R2",
+   "child": "foot_R4",
+   "anchor_mm": [
+    -43.9254,
+    -57.7893,
+    16.2297
+   ],
+   "axis": [
+    0.707107,
+    -0.707107,
+    -0.0
+   ]
+  },
+  "L1": {
+   "parent": "torso",
+   "child": "femur_L1",
+   "anchor_mm": [
+    24.2,
+    25.4207,
+    34.1633
+   ],
+   "axis": [
+    0.0,
+    -0.0,
+    1.0
+   ]
+  },
+  "L3": {
+   "parent": "femur_L1",
+   "child": "foot_L3",
+   "anchor_mm": [
+    44.6994,
+    56.9281,
+    16.4175
+   ],
+   "axis": [
+    -0.707107,
+    0.707107,
+    -0.0
+   ]
+  },
+  "L2": {
+   "parent": "torso",
+   "child": "femur_L2",
+   "anchor_mm": [
+    -24.2,
+    25.3793,
+    34.1633
+   ],
+   "axis": [
+    -0.0,
+    0.0,
+    1.0
+   ]
+  },
+  "L4": {
+   "parent": "femur_L2",
+   "child": "foot_L4",
+   "anchor_mm": [
+    -43.8962,
+    57.7601,
+    16.2297
+   ],
+   "axis": [
+    0.707107,
+    0.707107,
+    0.0
+   ]
+  }
+ },
+ "servos": {
+  "R1": {
+   "case_center_mm": [
+    19.05,
+    -25.4,
+    22.1447
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     0.0,
+     0.0,
+     -1.0,
+     19.05
+    ],
+    [
+     1.0,
+     -0.0,
+     -0.0,
+     -25.4
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0,
+     22.14474
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "torso"
+  },
+  "R3": {
+   "case_center_mm": [
+    52.754,
+    -48.9315,
+    11.2675
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     -0.707107,
+     0.707107,
+     0.0,
+     52.753971
+    ],
+    [
+     0.707107,
+     0.707107,
+     0.0,
+     -48.931505
+    ],
+    [
+     -0.0,
+     -0.0,
+     -1.0,
+     11.26749
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "foot_R3"
+  },
+  "R2": {
+   "case_center_mm": [
+    -19.05,
+    -25.4,
+    22.1447
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     0.0,
+     0.0,
+     -1.0,
+     -19.05
+    ],
+    [
+     1.0,
+     -0.0,
+     -0.0,
+     -25.4
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0,
+     22.14474
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "torso"
+  },
+  "R4": {
+   "case_center_mm": [
+    -52.4092,
+    -49.2762,
+    11.0797
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     -0.707107,
+     -0.707107,
+     -0.0,
+     -52.409243
+    ],
+    [
+     -0.707107,
+     0.707107,
+     0.0,
+     -49.276234
+    ],
+    [
+     -0.0,
+     -0.0,
+     -1.0,
+     11.07974
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "foot_R4"
+  },
+  "L1": {
+   "case_center_mm": [
+    19.05,
+    25.4,
+    22.1447
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     0.0,
+     0.0,
+     -1.0,
+     19.05
+    ],
+    [
+     1.0,
+     -0.0,
+     -0.0,
+     25.4
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0,
+     22.14474
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "torso"
+  },
+  "L3": {
+   "case_center_mm": [
+    52.6312,
+    49.0543,
+    11.2675
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     0.707107,
+     0.707107,
+     0.0,
+     52.631175
+    ],
+    [
+     0.707107,
+     -0.707107,
+     -0.0,
+     49.054301
+    ],
+    [
+     -0.0,
+     -0.0,
+     -1.0,
+     11.26749
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "foot_L3"
+  },
+  "L2": {
+   "case_center_mm": [
+    -19.05,
+    25.4,
+    22.1447
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     0.0,
+     0.0,
+     -1.0,
+     -19.05
+    ],
+    [
+     1.0,
+     -0.0,
+     -0.0,
+     25.4
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0,
+     22.14474
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "torso"
+  },
+  "L4": {
+   "case_center_mm": [
+    -52.4092,
+    49.2762,
+    11.0797
+   ],
+   "case_size_mm": [
+    12.4,
+    29.95,
+    32.1
+   ],
+   "case_transform": [
+    [
+     0.707107,
+     -0.707107,
+     -0.0,
+     -52.409243
+    ],
+    [
+     -0.707107,
+     -0.707107,
+     -0.0,
+     49.276234
+    ],
+    [
+     -0.0,
+     -0.0,
+     -1.0,
+     11.07974
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "link": "foot_L4"
+  }
+ }
+}

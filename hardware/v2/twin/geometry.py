@@ -301,7 +301,54 @@ def build(step: Path, out_dir: Path) -> dict:
     return geom
 
 
+def build_variant(base: Path, replace: dict[str, Path], out_dir: Path) -> dict:
+    """Геометрия с заменёнными деталями корпуса: в звене torso детали из replace (имя в STEP → STL в координатах
+    двойника) меняются на новые. Остальные звенья, суставы и сервы — как в base."""
+    import shutil
+    base, out_dir = Path(base), Path(out_dir)
+    g = json.loads((base / "geometry.json").read_text())
+    (out_dir / "meshes").mkdir(parents=True, exist_ok=True)
+    for link, info in g["links"].items():
+        if link == "torso":
+            continue
+        for f in [info["visual"], *info["hulls"]]:
+            shutil.copy(base / f, out_dir / f)
+    rot, origin = np.array(g["frame"]["cad_to_twin"]), np.array(g["frame"]["origin_mm"])
+    keep = [n for n in g["links"]["torso"]["parts"] if n not in replace]
+    parts = [(p.name, _to_twin(p.mesh, rot, origin)) for p in read_parts(Path(__file__).resolve().parents[3] /
+             "hardware" / "cad" / "Sesame-ESP32-v122.step") if p.name in keep]
+    extra = {}
+    for name, stl in replace.items():
+        new = Path(stl).stem
+        dst = out_dir / "meshes" / f"{new}.stl"
+        shutil.copy(stl, dst)
+        extra[new] = f"meshes/{dst.name}"
+        parts.append((new, trimesh.load(dst)))
+    visual = trimesh.util.concatenate([m for _, m in parts])
+    if len(visual.faces) > VISUAL_FACES:
+        visual = visual.simplify_quadric_decimation(face_count=VISUAL_FACES)
+    visual.export(out_dir / "meshes" / "torso.stl")
+    hull_files, printed_volume = [], 0.0
+    for name, m in parts:
+        printed = not any(k in name for k in ("SG90", "::horn", "Screw", "OLED", "Board", "KCD1", "Display"))
+        if printed:
+            printed_volume += abs(m.volume) / 1000
+        for h in _hulls(m, printed):
+            f = out_dir / "meshes" / f"torso_{len(hull_files):02d}.stl"
+            h.export(f)
+            hull_files.append(f"meshes/{f.name}")
+    g["links"]["torso"] = {"parts": [n for n, _ in parts], "visual": "meshes/torso.stl", "hulls": hull_files,
+                           "printed_volume_cm3": round(printed_volume, 3), "extra_parts": extra}
+    (out_dir / "geometry.json").write_text(json.dumps(g, indent=1, ensure_ascii=False))
+    return g
+
+
 if __name__ == "__main__":
     from twin import params as P
-    g = build(P.STEP, P.OUT)
+    if P.VARIANT == "v2":
+        stl = P.HERE.parent / "body" / "out"
+        g = build_variant(P.HERE / "out", {"Internal-Frame:1": stl / "frame_v2.stl",
+                                           "Bottom-Cover:1": stl / "bay_lid_v2.stl"}, P.OUT)
+    else:
+        g = build(P.STEP, P.OUT)
     print(f"геометрия: {len(g['links'])} звеньев, {len(g['joints'])} суставов → {P.OUT / 'geometry.json'}")

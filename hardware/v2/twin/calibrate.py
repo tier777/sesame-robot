@@ -49,7 +49,10 @@ def _link_meshes(link: str):
     g = P.geometry()
     rot, origin = np.array(g["frame"]["cad_to_twin"]), np.array(g["frame"]["origin_mm"])
     names = set(g["links"][link]["parts"])
-    return [G._to_twin(p.mesh, rot, origin) for p in G.read_parts(P.STEP) if p.name in names]
+    meshes = [G._to_twin(p.mesh, rot, origin) for p in G.read_parts(P.STEP) if p.name in names]
+    # детали не из STEP (рама v2 и т. п.) лежат готовыми STL в координатах двойника
+    meshes += [trimesh.load(P.OUT / f) for f in g["links"][link].get("extra_parts", {}).values()]
+    return meshes
 
 
 @lru_cache(maxsize=None)
